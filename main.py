@@ -28,7 +28,7 @@ async def call_handler(audio: UploadFile = File(...)):
         f.write(await audio.read())
 
     # Step 1: Speech → Text
-    user_text = speech_to_text(tmpfile.name, language="pa-IN")  # Punjabi default
+    user_text = speech_to_text(tmpfile.name, language="en-IN")  # english default
     print(f"👤 User said: {user_text}")
 
     # Step 2: Process via Gemini + DB
@@ -36,7 +36,7 @@ async def call_handler(audio: UploadFile = File(...)):
     print(f"🤖 Bot reply: {reply}")
 
     # Step 3: Text → Speech
-    reply_wav = text_to_speech(reply, language="pa-IN")
+    reply_wav = text_to_speech(reply, language="en-IN")
 
     # Step 4: Return audio file as response
     return FileResponse(reply_wav, media_type="audio/wav", filename="reply.wav")

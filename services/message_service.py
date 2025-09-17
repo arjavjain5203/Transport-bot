@@ -8,9 +8,9 @@ def handle_message(user_id: str, message: str, channel: str):
 
     # Step 2: Send to Gemini
     gemini_resp = process_input(message, memory_context)
-
+    print("returned file :", gemini_resp)
     intent = gemini_resp.get("intent")
-    language = gemini_resp.get("language", "pa-IN")
+    language = gemini_resp.get("language", "en-IN")
     reply = gemini_resp.get("reply")
 
     # Step 3: Handle based on intent

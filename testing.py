@@ -36,6 +36,6 @@ if __name__ == "__main__":
             f.write(response.content)
 
         print("🤖 Bot reply received, playing audio...")
-        os.system(f"mpg123 {bot_reply_file.name}")  # Linux/macOS playback
+        os.system(f"aplay {bot_reply_file.name}")  # Linux/macOS playback
     else:
         print("❌ API error:", response.text)

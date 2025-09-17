@@ -6,7 +6,7 @@ from core.config import settings
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
 # 🎙️ Speech-to-Text
-def speech_to_text(audio_file: str, language="pa-IN") -> str:
+def speech_to_text(audio_file: str, language="en-IN") -> str:
     client = speech.SpeechClient()
 
     with open(audio_file, "rb") as f:
@@ -18,7 +18,7 @@ def speech_to_text(audio_file: str, language="pa-IN") -> str:
         encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
         sample_rate_hertz=16000,
         language_code=language,
-        alternative_language_codes=["hi-IN", "en-IN"]  # fallback Hindi + English
+        alternative_language_codes=["hi-IN", "pa-IN"]  # fallback Hindi + English
     )
 
     response = client.recognize(config=config, audio=audio)
@@ -30,7 +30,7 @@ def speech_to_text(audio_file: str, language="pa-IN") -> str:
 
 
 # 🔊 Text-to-Speech
-def text_to_speech(text: str, language="pa-IN") -> str:
+def text_to_speech(text: str, language="en-IN") -> str:
     client = texttospeech.TextToSpeechClient()
 
     synthesis_input = texttospeech.SynthesisInput(text=text)

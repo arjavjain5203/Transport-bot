@@ -93,44 +93,71 @@ routestops (
   estimated_arrival DATETIME,
   estimated_departure DATETIME
 )
+
+
+### Example:
+Find buses from Chandigarh to Ludhiana:
+
+SELECT b.bus_number, r.route_name, b.current_location, b.status
+FROM buses b
+JOIN routes r ON b.route_id = r.route_id
+JOIN busstops origin ON r.start_stop_id = origin.stop_id
+JOIN busstops dest ON r.end_stop_id = dest.stop_id
+WHERE origin.location LIKE '%Chandigarh%'
+  AND dest.location LIKE '%Ludhiana%';
+
 """
 
 
-def process_input(user_text: str):
+def process_input(user_text: str, memory_context=None):
     """
     Send user input to Gemini and return structured JSON.
     """
     prompt = f"""
     You are a transport assistant chatbot. 
     User message: "{user_text}"
-
+    User memory context: "{memory_context}"
+    
     Use the following database schema to generate queries:
     {DB_SCHEMA}
 
     Respond in strict JSON format:
     {{
-      "intent": "Query | unQuery | smallTalk",
+      "intent": "Query | unQuery | other",
       "language": "pa-IN | en-IN | hi-IN",
-      "reply": "SQL query OR clarification OR small talk"
+      "reply": "SQL query OR clarification OR small talk OR Error"
     }}
 
     Rules:
+    - intent mark as Query : when user asks about buses, routes, drivers, tickets.
+    - intent mark as unQuery : when user query is missing info (like no source/destination).
+    - intent mark as others : for general/small talk/and any other thing.
     - If user asks about buses, routes, drivers, tickets → intent=Query → reply should be SQL query.
     - If missing info (like no source/destination) → intent=unQuery → reply=ask clarification.
-    - If general/small talk → intent=smallTalk → reply=direct answer.
+    - If general/small talk → intent=others → reply=direct answer.
     - Language should match the user input language.
     """
 
     model = genai.GenerativeModel("gemini-1.5-flash")
     response = model.generate_content(prompt)
-
+    text = response.text.strip()
+    # ✅ Clean Markdown fences if present
+    if text.startswith("```json"):
+        text = text.replace("```json", "", 1).strip()
+    if text.startswith("```"):
+        text = text.replace("```", "", 1).strip()
+    if text.endswith("```"):
+        text = text[:-3].strip()
+    
+    print("Gemini response:", text)
+    
     try:
-        return json.loads(response.text)  # safer than eval
+        return json.loads(text)  # safer than eval
     except Exception as e:
         return {"intent": "error", "language": "en-IN", "reply": f"Error: {str(e)}"}
 
 
-def format_reply(user_text: str, db_result, language="pa-IN"):
+def format_reply(user_text: str, db_result, language="en-IN"):
     """
     Format final reply using Gemini, given DB result + original query.
     """
