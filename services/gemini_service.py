@@ -157,7 +157,7 @@ def process_input(user_text: str, memory_context=None):
         return {"intent": "error", "language": "en-IN", "reply": f"Error: {str(e)}"}
 
 
-def format_reply(user_text: str, db_result, language="en-IN"):
+def format_reply(user_text: str, db_result, language="pa-IN"):
     """
     Format final reply using Gemini, given DB result + original query.
     """

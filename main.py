@@ -7,6 +7,11 @@ from services.message_service import handle_message
 
 app = FastAPI(title="Unified Transport Chatbot API")
 
+@app.get("/")
+async def root():
+    return {"message": "Transport Bot is running"}
+
+
 @app.post("/sms")
 async def sms_handler(user_id: str, message: str):
     reply = handle_message(user_id, message, channel="sms")
@@ -28,7 +33,7 @@ async def call_handler(audio: UploadFile = File(...)):
         f.write(await audio.read())
 
     # Step 1: Speech → Text
-    user_text = speech_to_text(tmpfile.name, language="en-IN")  # english default
+    user_text = speech_to_text(tmpfile.name, language="pa-IN")  # panjabi default
     print(f"👤 User said: {user_text}")
 
     # Step 2: Process via Gemini + DB
@@ -36,7 +41,7 @@ async def call_handler(audio: UploadFile = File(...)):
     print(f"🤖 Bot reply: {reply}")
 
     # Step 3: Text → Speech
-    reply_wav = text_to_speech(reply, language="en-IN")
+    reply_wav = text_to_speech(reply, language="pa-IN")
 
     # Step 4: Return audio file as response
     return FileResponse(reply_wav, media_type="audio/wav", filename="reply.wav")
