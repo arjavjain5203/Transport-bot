@@ -136,6 +136,7 @@ def process_input(user_text: str, memory_context=None):
     - If missing info (like no source/destination) → intent=unQuery → reply=ask clarification.
     - If general/small talk → intent=others → reply=direct answer.
     - Language should match the user input language.
+    Most Important Note : write the Query in english and the name of source and destination should in english in the SQL query
     """
 
     model = genai.GenerativeModel("gemini-1.5-flash")
