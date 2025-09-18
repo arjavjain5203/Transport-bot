@@ -9,3 +9,5 @@ sounddevice
 soundfile
 wavio
 twilio
+google-cloud-speech
+google-cloud-texttospeech
