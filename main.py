@@ -1,10 +1,17 @@
+from pydantic import BaseModel
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import FileResponse
 import tempfile
 import os
+from fastapi import Form
+from fastapi.responses import JSONResponse, PlainTextResponse, FileResponse
+
 from services.speech_service import speech_to_text, text_to_speech
 from services.message_service import handle_message
 
+class ChatRequest(BaseModel):
+    user_id: int
+    message: str
 app = FastAPI(title="Unified Transport Chatbot API")
 
 @app.get("/")
@@ -12,15 +19,44 @@ async def root():
     return {"message": "Transport Bot is running"}
 
 
+
+@app.post("/chat")
+async def chat_webhook(request: ChatRequest):
+    # Pass user_id first, then message, default channel to e.g. "web"
+    result = handle_message(request.user_id, request.message, channel="web")
+
+    response = {
+        "user_message": request.message,
+        "bot_response": None,
+        "results": []
+    }
+
+    if isinstance(result, dict):
+        response["bot_response"] = result.get("bot_response") or result.get("response")
+        response["results"] = result.get("results", [])
+    else:
+        response["bot_response"] = str(result)
+
+    return JSONResponse(content=response)
+
+
 @app.post("/sms")
 async def sms_handler(user_id: str, message: str):
     reply = handle_message(user_id, message, channel="sms")
     return {"reply": reply}
 
+
 @app.post("/whatsapp")
-async def whatsapp_handler(user_id: str, message: str):
-    reply = handle_message(user_id, message, channel="whatsapp")
-    return {"reply": reply}
+async def whatsapp_webhook(Body: str = Form(...), From: str = Form(...)):
+    # Here From is user_id, Body is message
+    response_text = handle_message(From, Body, channel="whatsapp")
+
+    beautified = (
+        f"🚌 *Punjab Bus Assistant*\n\n"
+        f"{response_text}\n\n"
+        f"🚏 Reply anytime for more help!"
+    )
+    return PlainTextResponse(content=beautified)
 
 @app.post("/call")
 async def call_handler(audio: UploadFile = File(...)):

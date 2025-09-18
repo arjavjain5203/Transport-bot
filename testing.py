@@ -7,7 +7,7 @@ import numpy as np
 import platform
 import subprocess
 
-API_URL = "https://transport-bot-8651.onrender.com/call"  # API URL
+API_URL = "http://0.0.0.0:8000/call"  # API URL
 
 def record_audio(duration=5, fs=16000):
     print("🎙️ Speak now...")
