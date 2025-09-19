@@ -5,6 +5,7 @@ import tempfile
 import os
 from fastapi import Form
 from fastapi.responses import JSONResponse, PlainTextResponse, FileResponse
+from twilio.twiml.messaging_response import MessagingResponse
 
 from services.speech_service import speech_to_text, text_to_speech
 from services.message_service import handle_message
@@ -48,16 +49,26 @@ async def sms_handler(user_id: str, message: str):
 
 @app.post("/whatsapp")
 async def whatsapp_webhook(Body: str = Form(...), From: str = Form(...)):
-    # Here From is user_id, Body is message
+    """
+    Handle incoming WhatsApp messages via the Twilio webhook.
+    `Body` is the content of the message, and `From` is the sender's phone number.
+    """
+    # Handle the incoming message based on the 'From' (user) and 'Body' (message)
     response_text = handle_message(From, Body, channel="whatsapp")
 
-    beautified = (
+    # Beautify the message for the user (Optional formatting)
+    beautified_response = (
         f"🚌 *Punjab Bus Assistant*\n\n"
         f"{response_text}\n\n"
         f"🚏 Reply anytime for more help!"
     )
-    return PlainTextResponse(content=beautified)
 
+    # Return the response as a message in a TwiML format
+    twilio_response = MessagingResponse()
+    twilio_response.message(beautified_response)
+    
+
+    return PlainTextResponse(content=str(twilio_response), media_type="text/xml")
 @app.post("/call")
 async def call_handler(audio: UploadFile = File(...)):
     """
