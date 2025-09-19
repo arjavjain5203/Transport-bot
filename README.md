@@ -61,14 +61,14 @@ uvicorn main:app --reload --port 8000
 API will be live at:\
 👉 http://127.0.0.1:8000
 
-Deployed API (Render):\
-👉 https://transport-bot.onrender.com
+
 
 ## 📞 API Endpoints
 
 -   `POST /sms` → Handle SMS messages\
 -   `POST /whatsapp` → Handle WhatsApp chatbot responses\
 -   `POST /call` → Upload `.wav` file, get AI response in audio
+-   `POST /chat` → for the chatbot 
 
 ## 🛠 Debugging Punjabi Speech
 
@@ -81,4 +81,4 @@ ffmpeg -y -i input.wav -ac 1 -ar 16000 -f wav output_16k.wav
 
 ## 👨‍💻 Author
 
-Built by **Arjav Jain** and team 🚀
+Built by **Arjav Jain** 
