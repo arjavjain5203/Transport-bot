@@ -24,6 +24,7 @@ async def root():
 @app.post("/chat")
 async def chat_webhook(request: ChatRequest):
     # Pass user_id first, then message, default channel to e.g. "web"
+    print(request.message)
     result = handle_message(request.user_id, request.message, channel="web")
 
     response = {
