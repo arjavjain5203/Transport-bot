@@ -18,7 +18,6 @@ def speech_to_text(audio_file: str, language="en-IN") -> str:
         encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
         sample_rate_hertz=16000,
         language_code=language,
-        alternative_language_codes=["hi-IN", "pa-IN","pa-Guru-IN"]  # fallback Hindi + English
     )
 
     response = client.recognize(config=config, audio=audio)
