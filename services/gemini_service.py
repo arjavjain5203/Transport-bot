@@ -279,6 +279,7 @@ def format_reply(user_text: str, db_result, language="en-IN"):
 
     Generate a natural reply in the user's language. 
     Example: "The next bus from Sector 10 to Civil Lines is Bus 21, arriving in 8 minutes."
+    Note : only give the best responce which is according to you 
     """
 
     model = genai.GenerativeModel("gemini-1.5-flash")
