@@ -94,6 +94,116 @@ routestops (
   estimated_departure DATETIME
 )
 
+route_stops (
+  id INT PK,
+  route_id INT FK → driver_routes.id,
+  stop_id INT FK → busstops.stop_id,
+  stop_order INT,
+  arrival_time TIME,
+  created_at TIMESTAMP
+)
+
+driver_routes (
+  id INT PK,
+  route_number VARCHAR UNIQUE,
+  route_name VARCHAR,
+  source_stop VARCHAR,
+  destination_stop VARCHAR,
+  total_stops INT,
+  estimated_duration INT,
+  is_active TINYINT,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+)
+
+driver_route_stops (
+  id INT PK,
+  route_id INT FK → driver_routes.id,
+  stop_name VARCHAR,
+  stop_order INT,
+  latitude DECIMAL,
+  longitude DECIMAL,
+  estimated_arrival_time TIME,
+  created_at TIMESTAMP
+)
+
+driver_auth (
+  id INT PK,
+  license_number VARCHAR UNIQUE,
+  password_hash VARCHAR,
+  name VARCHAR,
+  phone VARCHAR,
+  email VARCHAR,
+  is_active TINYINT,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+)
+
+driver_sessions (
+  id INT PK,
+  driver_id INT FK → drivers.driver_id,
+  route_id INT FK → driver_routes.id,
+  bus_number VARCHAR,
+  status ENUM('offline','online','active'),
+  started_at TIMESTAMP,
+  ended_at TIMESTAMP,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+)
+
+latest_driver_locations (
+  session_id INT,
+  driver_id INT,
+  route_id INT,
+  bus_number VARCHAR,
+  session_status ENUM('offline','online','active'),
+  driver_name VARCHAR,
+  route_name VARCHAR,
+  latitude DECIMAL,
+  longitude DECIMAL,
+  speed FLOAT,
+  last_update TIMESTAMP,
+  seconds_since_update BIGINT
+)
+
+location_updates (
+  id INT PK,
+  session_id INT,
+  latitude DECIMAL,
+  longitude DECIMAL,
+  accuracy FLOAT,
+  speed FLOAT,
+  bearing FLOAT,
+  timestamp TIMESTAMP,
+  location_source ENUM('gps','network','gsm'),
+  device_type ENUM('mobile_app','esp32_hardware','simulator'),
+  device_id VARCHAR,
+  hardware_info JSON
+)
+
+bus_realtime_status (
+  id INT PK,
+  bus_id INT FK → buses.bus_id,
+  current_latitude DECIMAL,
+  current_longitude DECIMAL,
+  speed DECIMAL,
+  fuel_level INT,
+  passenger_count INT,
+  next_stop_id INT FK → busstops.stop_id,
+  eta_next_stop TIME,
+  last_updated TIMESTAMP,
+  driver_id INT FK → drivers.driver_id,
+  is_delayed TINYINT,
+  delay_minutes INT
+)
+
+stop_arrivals (
+  id INT PK,
+  session_id INT,
+  stop_id INT FK → busstops.stop_id,
+  arrival_time TIMESTAMP
+)
+
 
 ### Example:
 Find buses from Chandigarh to Ludhiana:
