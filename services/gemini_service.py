@@ -124,7 +124,7 @@ def process_input(user_text: str, memory_context=None):
     Respond in strict JSON format:
     {{
       "intent": "Query | unQuery | other",
-      "language": "pa-IN | en-IN | hi-IN",
+      "language": "en-IN"(only),
       "reply": "SQL query OR clarification OR small talk OR Error"
     }}
 
