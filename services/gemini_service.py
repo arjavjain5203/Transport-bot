@@ -10,88 +10,99 @@ genai.configure(api_key=settings.GEMINI_API)
 DB_SCHEMA = """
 Database Schema with Keys:
 
-users (
-  user_id INT PK,
-  name VARCHAR,
-  age INT,
-  mobile_no VARCHAR UNIQUE,
-  email VARCHAR UNIQUE,
-  region_of_commute VARCHAR,
-  created_at DATETIME
-)
-
-busstops (
-  stop_id INT PK,
-  stop_name VARCHAR,
-  location VARCHAR,
-  region VARCHAR
-)
-
-routes (
-  route_id INT PK,
-  route_name VARCHAR,
-  start_stop_id INT FK → busstops.stop_id,
-  end_stop_id INT FK → busstops.stop_id,
-  distance_km FLOAT
-)
-
 buses (
   bus_id INT PK,
-  bus_number VARCHAR,
+  bus_number VARCHAR(50),
   capacity INT,
-  current_location VARCHAR,
+  status ENUM('available','running','maintenance','alternate'),
+  current_driver_id INT FK → drivers.driver_id
+)
+
+driver_sessions (
+  session_id INT PK,
+  driver_id INT FK → drivers.driver_id,
+  bus_id INT FK → buses.bus_id,
   route_id INT FK → routes.route_id,
-  status VARCHAR
+  start_time TIMESTAMP,
+  end_time TIMESTAMP,
+  performance_rating DECIMAL(3,2)
 )
 
 drivers (
   driver_id INT PK,
-  name VARCHAR,
-  mobile_no VARCHAR UNIQUE,
+  name VARCHAR(100),
+  mobile VARCHAR(15),
+  license_no VARCHAR(50),
+  assigned_bus_id INT FK → buses.bus_id,
+  created_at TIMESTAMP
+)
+
+eta_predictions (
+  eta_id INT PK,
   bus_id INT FK → buses.bus_id,
-  location VARCHAR,
-  shift_start TIME,
-  shift_end TIME
+  stop_id INT FK → stops.stop_id,
+  predicted_arrival TIMESTAMP,
+  minutes_remaining INT,
+  last_updated TIMESTAMP
 )
 
-tickets (
-  ticket_id INT PK,
+location_updates (
+  location_id INT PK,
+  bus_id INT FK → buses.bus_id,
+  latitude DECIMAL(10,6),
+  longitude DECIMAL(10,6),
+  timestamp TIMESTAMP
+)
+
+reports (
+  report_id INT PK,
   user_id INT FK → users.user_id,
   bus_id INT FK → buses.bus_id,
+  report_type ENUM('accident','delay','other'),
+  location_lat DECIMAL(10,6),
+  location_lon DECIMAL(10,6),
+  description TEXT,
+  media_url VARCHAR(255),
+  created_at TIMESTAMP
+)
+
+route_progress (
+  progress_id INT PK,
+  session_id INT FK → driver_sessions.session_id,
+  stop_id INT FK → stops.stop_id,
+  arrival_time TIMESTAMP,
+  departure_time TIMESTAMP
+)
+
+routes (
+  route_id INT PK,
+  source_name VARCHAR(100),
+  source_lat DECIMAL(10,6),
+  source_lon DECIMAL(10,6),
+  destination_name VARCHAR(100),
+  destination_lat DECIMAL(10,6),
+  destination_lon DECIMAL(10,6),
+  total_distance_km DECIMAL(8,2)
+)
+
+stops (
+  stop_id INT PK,
   route_id INT FK → routes.route_id,
-  source_stop_id INT FK → busstops.stop_id,
-  destination_stop_id INT FK → busstops.stop_id,
-  fare FLOAT,
-  purchase_time DATETIME
+  stop_name VARCHAR(100),
+  stop_lat DECIMAL(10,6),
+  stop_lon DECIMAL(10,6),
+  sequence_no INT
 )
 
-notifications (
-  notification_id INT PK,
-  user_id INT FK → users.user_id,
-  type VARCHAR,
-  message TEXT,
-  sent_at DATETIME
-)
-
-chatlogs (
-  chat_id INT PK,
-  user_id INT FK → users.user_id,
-  message_text TEXT,
-  response_text TEXT,
-  intent VARCHAR,
-  created_at DATETIME,
-  correction_applied VARCHAR
-)
-
-routestops (
-  id INT PK,
-  route_id INT FK → routes.route_id,
-  stop_id INT FK → busstops.stop_id,
-  stop_order INT,
-  scheduled_arrival TIME,
-  scheduled_departure TIME,
-  estimated_arrival DATETIME,
-  estimated_departure DATETIME
+users (
+  user_id INT PK,
+  name VARCHAR(100),
+  password_hash VARCHAR(255),
+  age INT,
+  email VARCHAR(150),
+  mobile VARCHAR(15),
+  region VARCHAR(100),
+  created_at TIMESTAMP
 )
 
 route_stops (
@@ -206,15 +217,16 @@ stop_arrivals (
 
 
 ### Example:
-Find buses from Chandigarh to Ludhiana:
-
-SELECT b.bus_number, r.route_name, b.current_location, b.status
+SELECT b.bus_number, r.source_name, r.destination_name, b.status
 FROM buses b
-JOIN routes r ON b.route_id = r.route_id
-JOIN busstops origin ON r.start_stop_id = origin.stop_id
-JOIN busstops dest ON r.end_stop_id = dest.stop_id
-WHERE origin.location LIKE '%Chandigarh%'
-  AND dest.location LIKE '%Ludhiana%';
+JOIN routes r ON b.bus_id = (
+    SELECT bus_id FROM driver_sessions 
+    WHERE route_id = r.route_id 
+    AND end_time IS NULL 
+    LIMIT 1
+)
+WHERE r.source_name LIKE '%Chandigarh%'
+  AND r.destination_name LIKE '%Ludhiana%';
 
 """
 

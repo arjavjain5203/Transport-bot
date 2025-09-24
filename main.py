@@ -81,7 +81,7 @@ async def call_handler(audio: UploadFile = File(...)):
         f.write(await audio.read())
 
     # Step 1: Speech → Text
-    user_text = speech_to_text(tmpfile.name, language="en-IN")  # panjabi default
+    user_text = speech_to_text(tmpfile.name, language="en-IN")  # english default
     print(f"👤 User said: {user_text}")
 
     # Step 2: Process via Gemini + DB
