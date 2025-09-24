@@ -248,16 +248,22 @@ def process_input(user_text: str, memory_context=None):
       "language": "en-IN"(only),
       "reply": "SQL query OR clarification OR small talk OR Error"
     }}
-
+    
     Rules:
     - intent mark as Query : when user asks about buses, routes, drivers, tickets.
     - intent mark as unQuery : when user query is missing info (like no source/destination).
     - intent mark as others : for general/small talk/and any other thing.
     - If user asks about buses, routes, drivers, tickets → intent=Query → reply should be SQL query.
-    - If missing info (like no source/destination) → intent=unQuery → reply=ask clarification.
+    - If missing info (like no source/destination) → intent=unQuery → reply=ask clarification, but be specific about what is missing (e.g., "Please specify your destination").
     - If general/small talk → intent=others → reply=direct answer.
     - Language should match the user input language.
-    Most Important Note : write the Query in english and the name of source and destination should in english in the SQL query
+    Most Important Note: Write the Query in English, and the name of source and destination should be in English in the SQL query.
+    
+    For example:
+    - If a user says "I want to travel from Chandigarh to Ludhiana", return an SQL query.
+    - If the user only mentions "I want to travel from Chandigarh", ask: "Where are you traveling to?" 
+    - If the user says "I want to travel to Ludhiana", ask: "Where are you traveling from?" 
+    - If the user gives an incomplete or unclear query, ask for more specific information, like: "Please clarify the source or destination."
     """
 
     model = genai.GenerativeModel("gemini-1.5-flash")
