@@ -223,7 +223,6 @@ JOIN routes r ON b.bus_id = (
     SELECT bus_id FROM driver_sessions 
     WHERE route_id = r.route_id 
     AND end_time IS NULL 
-    LIMIT 1
 )
 WHERE r.source_name LIKE '%Chandigarh%'
   AND r.destination_name LIKE '%Ludhiana%';
