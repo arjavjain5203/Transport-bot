@@ -260,10 +260,109 @@ def process_input(user_text: str, memory_context=None):
     Most Important Note: Write the Query in English, and the name of source and destination should be in English in the SQL query.
     
     For example:
-    - If a user says "I want to travel from Chandigarh to Ludhiana", return an SQL query.
-    - If the user only mentions "I want to travel from Chandigarh", ask: "Where are you traveling to?" 
-    - If the user says "I want to travel to Ludhiana", ask: "Where are you traveling from?" 
-    - If the user gives an incomplete or unclear query, ask for more specific information, like: "Please clarify the source or destination."
+    1. Input: "I want to travel from Chandigarh to Ludhiana"
+   Output:
+   {
+     "intent": "Query",
+     "language": "en-IN",
+     "reply": "SELECT * FROM buses WHERE source = 'Chandigarh' AND destination = 'Ludhiana';"
+   }
+
+2. Input: "frm Amrutsar Tu Jalandhar"
+   Output:
+   {
+     "intent": "Query",
+     "language": "en-IN",
+     "reply": "SELECT * FROM buses WHERE source = 'Amritsar' AND destination = 'Jalandhar';"
+   }
+
+3. Input: "I want to go to Delhi"
+   Output:
+   {
+     "intent": "unQuery",
+     "language": "en-IN",
+     "reply": "Please specify your departure city."
+   }
+
+4. Input: "I want to go from Ludhiana"
+   Output:
+   {
+     "intent": "unQuery",
+     "language": "en-IN",
+     "reply": "Please specify your destination city."
+   }
+
+5. Input: "Hi there!"
+   Output:
+   {
+     "intent": "others",
+     "language": "en-IN",
+     "reply": "Hello! How can I assist you with your travel today?"
+   }
+
+6. Input: "I need to book a ticket from Patiala to Mohali"
+   Output:
+   {
+     "intent": "Query",
+     "language": "en-IN",
+     "reply": "SELECT * FROM tickets WHERE source = 'Patiala' AND destination = 'Mohali';"
+   }
+
+7. Input: "Can you show me drivers for buses from Ambala to Karnal"
+   Output:
+   {
+     "intent": "Query",
+     "language": "en-IN",
+     "reply": "SELECT d.* FROM drivers d JOIN buses b ON d.bus_id = b.id WHERE b.source = 'Ambala' AND b.destination = 'Karnal';"
+   }
+
+8. Input: "route from Pathankot Tu Jammu"
+   Output:
+   {
+     "intent": "Query",
+     "language": "en-IN",
+     "reply": "SELECT * FROM routes WHERE source = 'Pathankot' AND destination = 'Jammu';"
+   }
+
+9. Input: "whats the fare frm Chandigarh to Amritsar"
+   Output:
+   {
+     "intent": "Query",
+     "language": "en-IN",
+     "reply": "SELECT fare FROM buses WHERE source = 'Chandigarh' AND destination = 'Amritsar';"
+   }
+
+10. Input: "show me tickets for bus going to Ludhiana"
+    Output:
+    {
+      "intent": "unQuery",
+      "language": "en-IN",
+      "reply": "Please specify your departure city."
+    }
+
+11. Input: "I want to see all available buses"
+    Output:
+    {
+      "intent": "Query",
+      "language": "en-IN",
+      "reply": "SELECT * FROM buses;"
+    }
+
+12. Input: "tell me the distance between Bathinda and Firozpur"
+    Output:
+    {
+      "intent": "Query",
+      "language": "en-IN",
+      "reply": "SELECT distance FROM routes WHERE source = 'Bathinda' AND destination = 'Firozpur';"
+    }
+
+14. Input: "I want to go from Ludhiana to Delhi around 5PM"
+    Output:
+    {
+      "intent": "Query",
+      "language": "en-IN",
+      "reply": "SELECT * FROM buses WHERE source = 'Ludhiana' AND destination = 'Delhi' AND departure_time >= '17:00:00';"
+    }
     """
 
     model = genai.GenerativeModel("gemini-1.5-flash")
