@@ -250,120 +250,43 @@ def process_input(user_text: str, memory_context=None):
     }}
     
     Rules:
-    - intent mark as Query : when user asks about buses, routes, drivers, tickets.
-    - intent mark as unQuery : when user query is missing info (like no source/destination).
-    - intent mark as others : for general/small talk/and any other thing.
+    - intent mark as Query: when user asks about buses, routes, drivers, tickets.
+    - intent mark as unQuery: when user query is missing info (like no source/destination).
+    - intent mark as others: for general/small talk/and any other thing.
     - If user asks about buses, routes, drivers, tickets → intent=Query → reply should be SQL query.
     - If missing info (like no source/destination) → intent=unQuery → reply=ask clarification, but be specific about what is missing (e.g., "Please specify your destination").
     - If general/small talk → intent=others → reply=direct answer.
     - Language should match the user input language.
-    Most Important Note: Write the Query in English, and the name of source and destination should be in English in the SQL query.
     
-    For example:
+    Most Important Note: 
+    - Assume random attributes in the table, only consider the attributes given in the schema.
+    - Write the Query in English, and the name of source and destination should be in English in the SQL query.
+    - When the user asks for any stop to their destination, reply with at least three bus numbers and their estimated time of arrival (ETA).
+    
+    Additional Notes:
+    - If the user inputs informal or incorrect text (e.g., "Tu" instead of "to"), attempt to normalize this into the standard format.
+    - If the query lacks a clear destination or source, ask for clarification, but try to be specific (e.g., "Please specify your destination city.").
+    - If there's a clear source but no destination, reply: "Please specify your destination city."
+    - If there's a clear destination but no source, reply: "Please specify your departure city."
+    
+    Example:
     1. Input: "I want to travel from Chandigarh to Ludhiana"
-   Output:
-   {
-     "intent": "Query",
-     "language": "en-IN",
-     "reply": "SELECT * FROM buses WHERE source = 'Chandigarh' AND destination = 'Ludhiana';"
-   }
+       Output:
+       {{
+         "intent": "Query",
+         "language": "en-IN",
+         "reply": "SELECT * FROM buses WHERE source = 'Chandigarh' AND destination = 'Ludhiana';"
+       }}
+    
+    2. Input: "I want Tu help from Amritsar to Jalandhar"
+       Output:
+       {{
+         "intent": "Query",
+         "language": "en-IN",
+         "reply": "SELECT * FROM buses WHERE source = 'Amritsar' AND destination = 'Jalandhar';"
+       }}
 
-2. Input: "frm Amrutsar Tu Jalandhar"
-   Output:
-   {
-     "intent": "Query",
-     "language": "en-IN",
-     "reply": "SELECT * FROM buses WHERE source = 'Amritsar' AND destination = 'Jalandhar';"
-   }
-
-3. Input: "I want to go to Delhi"
-   Output:
-   {
-     "intent": "unQuery",
-     "language": "en-IN",
-     "reply": "Please specify your departure city."
-   }
-
-4. Input: "I want to go from Ludhiana"
-   Output:
-   {
-     "intent": "unQuery",
-     "language": "en-IN",
-     "reply": "Please specify your destination city."
-   }
-
-5. Input: "Hi there!"
-   Output:
-   {
-     "intent": "others",
-     "language": "en-IN",
-     "reply": "Hello! How can I assist you with your travel today?"
-   }
-
-6. Input: "I need to book a ticket from Patiala to Mohali"
-   Output:
-   {
-     "intent": "Query",
-     "language": "en-IN",
-     "reply": "SELECT * FROM tickets WHERE source = 'Patiala' AND destination = 'Mohali';"
-   }
-
-7. Input: "Can you show me drivers for buses from Ambala to Karnal"
-   Output:
-   {
-     "intent": "Query",
-     "language": "en-IN",
-     "reply": "SELECT d.* FROM drivers d JOIN buses b ON d.bus_id = b.id WHERE b.source = 'Ambala' AND b.destination = 'Karnal';"
-   }
-
-8. Input: "route from Pathankot Tu Jammu"
-   Output:
-   {
-     "intent": "Query",
-     "language": "en-IN",
-     "reply": "SELECT * FROM routes WHERE source = 'Pathankot' AND destination = 'Jammu';"
-   }
-
-9. Input: "whats the fare frm Chandigarh to Amritsar"
-   Output:
-   {
-     "intent": "Query",
-     "language": "en-IN",
-     "reply": "SELECT fare FROM buses WHERE source = 'Chandigarh' AND destination = 'Amritsar';"
-   }
-
-10. Input: "show me tickets for bus going to Ludhiana"
-    Output:
-    {
-      "intent": "unQuery",
-      "language": "en-IN",
-      "reply": "Please specify your departure city."
-    }
-
-11. Input: "I want to see all available buses"
-    Output:
-    {
-      "intent": "Query",
-      "language": "en-IN",
-      "reply": "SELECT * FROM buses;"
-    }
-
-12. Input: "tell me the distance between Bathinda and Firozpur"
-    Output:
-    {
-      "intent": "Query",
-      "language": "en-IN",
-      "reply": "SELECT distance FROM routes WHERE source = 'Bathinda' AND destination = 'Firozpur';"
-    }
-
-14. Input: "I want to go from Ludhiana to Delhi around 5PM"
-    Output:
-    {
-      "intent": "Query",
-      "language": "en-IN",
-      "reply": "SELECT * FROM buses WHERE source = 'Ludhiana' AND destination = 'Delhi' AND departure_time >= '17:00:00';"
-    }
-    """
+"""
 
     model = genai.GenerativeModel("gemini-1.5-flash")
     response = model.generate_content(prompt)
@@ -377,12 +300,25 @@ def process_input(user_text: str, memory_context=None):
         text = text[:-3].strip()
     
     print("Gemini response:", text)
-    
     try:
-        return json.loads(text)  # safer than eval
+        # Try parsing the cleaned-up response as JSON
+        return json.loads(text)
+    except json.JSONDecodeError as e:
+        # Log and return a structured error response if parsing fails
+        print(f"Error parsing response: {e}")
+        return {
+            "intent": "error",
+            "language": "en-IN",
+            "reply": f"Error: Unable to parse response. Please try again."
+        }
     except Exception as e:
-        return {"intent": "error", "language": "en-IN", "reply": f"Error: {str(e)}"}
-
+        # Catch any other exceptions and return a generic error message
+        print(f"Unexpected error: {e}")
+        return {
+            "intent": "error",
+            "language": "en-IN",
+            "reply": f"Error: {str(e)}"
+        }
 
 def format_reply(user_text: str, db_result, language="en-IN"):
     """
@@ -395,7 +331,9 @@ def format_reply(user_text: str, db_result, language="en-IN"):
 
     Generate a natural reply in the user's language. 
     Example: "The next bus from Sector 10 to Civil Lines is Bus 21, arriving in 8 minutes."
-    Note : only give the best responce which is according to you 
+    Note : dont add any special characters like *, <, > and other in the reply.
+           reply like you are talking to a normal person in english only.
+           Use conversational language and avoid technical jargon. 
     """
 
     model = genai.GenerativeModel("gemini-1.5-flash")
