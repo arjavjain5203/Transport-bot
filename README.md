@@ -25,7 +25,7 @@ This project is a powerful, multi-channel conversational API built to handle dyn
 ```bash
 transport-bot/
 ├── main.py # FastAPI entry point & API routing
-├── temp_call.py # Utility for call simulation setup
+├── testing.py # Utility for call simulation setup
 ├── services/
 │ ├── gemini_service.py # Wrapper for Gemini API calls
 │ ├── message_service.py # Logic for handling message flow and intent
